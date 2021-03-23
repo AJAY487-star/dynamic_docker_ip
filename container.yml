@@ -1,0 +1,40 @@
+- hosts: localhost
+  tasks:
+  - name: "installing docker sdk"
+    pip:
+            name: docker
+  - name: "launching ssh enabled container"
+    docker_container:
+            name: "os1"
+            image: "ssh_image"
+            state: started
+            interactive: yes
+            detach: yes
+            tty: yes
+  - name: "getting container information"
+    docker_container_info:
+            name: os1
+    register: X
+  - debug:
+          var: X
+
+  - name: "updating ip on the inventory"
+    template:
+            src: "/root/ssh_img/store_ip.txt"
+            dest: "/root/ip.txt"
+  - meta: refresh_inventory
+
+- hosts: all
+  tasks:
+  - name: "installing httpd"
+    package:
+           name: "httpd"
+           state: present
+  - name: "copy web page"
+    copy:
+            content: "Task Done"
+            dest: "/var/www/html/index.html"
+
+  - name: "starting services"
+    command: /usr/sbin/httpd
+
